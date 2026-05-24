@@ -1,1 +1,583 @@
-# gebulin
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operation: Goblin ❤️ Goddess | 哥布林約女神吃飯大作戰選餐機</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+       
+</head>
+<body>
+
+    <div id="app-root"></div>
+
+    <script>
+        // ================= Web Audio API 核心精簡音效引擎 =================
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playClickSound() {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); 
+            osc.frequency.exponentialRampToValueAtTime(1318.51, audioCtx.currentTime + 0.08); 
+            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+        }
+
+        function playWinSound() {
+            const now = audioCtx.currentTime;
+            // 粉紅泡泡大爆發的甜蜜動漫風鈴交響和弦
+            const chimeNotes = [523.25, 659.25, 783.99, 987.77, 1318.51]; 
+            chimeNotes.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = 'sine'; 
+                const startTime = now + (i * 0.04); 
+                osc.frequency.setValueAtTime(freq, startTime);
+                osc.frequency.linearRampToValueAtTime(freq + 6, startTime + 0.5); 
+                gain.gain.setValueAtTime(0.06, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.0005, startTime + 1.5); 
+                osc.start(startTime); osc.stop(startTime + 1.5);
+            });
+        }
+
+        // ================= CSS 全面翻新：動漫輕小說戀愛喜劇風視覺 =================
+        const cssStyles = `
+            body {
+                font-family: 'Noto Sans TC', sans-serif;
+                background-color: #FFF2F4; /* 充滿粉紅泡泡的少女漫底色 */
+                background-image: radial-gradient(#FFD6DC 2px, transparent 2px);
+                background-size: 30px 30px;
+                color: #5C4D4E; margin: 0; padding: 20px;
+                display: flex; justify-content: center; align-items: center;
+                min-height: 100vh; box-sizing: border-box; overflow-x: hidden; position: relative;
+            }
+
+            /* 全螢幕戀愛愛心雨與星芒特效層 */
+            .anime-fx-overlay {
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                pointer-events: none; z-index: 999; overflow: hidden;
+            }
+
+            .app-workspace {
+                display: flex; gap: 28px; width: 100%; max-width: 950px;
+                background: linear-gradient(to bottom, rgba(255, 255, 255, 0.98) 0%, rgba(255, 245, 247, 0.98) 100%);
+                padding: 30px; border-radius: 32px;
+                box-shadow: 0 25px 60px rgba(235, 171, 179, 0.35); 
+                border: 4px solid #FFE3E6;
+                position: relative; box-sizing: border-box; backdrop-filter: blur(8px);
+                margin-top: 50px;
+            }
+
+            /* ================= 左欄：女神大人的美食情報筆記 ================= */
+            .list-panel {
+                flex: 1.2; display: flex; flex-direction: column;
+                background: #FFFDFE; border-radius: 24px; padding: 22px;
+                border: 2px solid #F3DDD9; height: 460px; box-sizing: border-box;
+            }
+            .list-header {
+                font-family: 'Mochiy Pop One', sans-serif; font-size: 15px; color: #E06A7B;
+                margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+                border-bottom: 2px dashed #FFC0CB; padding-bottom: 12px;
+            }
+            .menu-board-grid {
+                flex: 1; display: grid; grid-template-columns: repeat(2, 1fr);
+                gap: 14px; align-content: start; overflow-y: auto; padding-right: 4px;
+            }
+            .menu-board-grid::-webkit-scrollbar { width: 6px; }
+            .menu-board-grid::-webkit-scrollbar-thumb { background: #FFC0CB; border-radius: 10px; }
+            
+            .wood-tag-item {
+                background: #FFFFFF; border-left: 6px solid #FF8A9A;
+                border-top: 1px solid #FFF5F6; border-right: 1px solid #FFF5F6; border-bottom: 4px solid #E2CDCA;
+                padding: 16px 10px; border-radius: 8px; text-align: center;
+                font-weight: 700; font-size: 14px; color: #5C4D4E; box-sizing: border-box;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0;
+                transform: scale(0.85) translateY(12px);
+                animation: popInAnimeTag 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+                transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .wood-tag-item.active-flash {
+                background: #FFF0F2 !important; border-left-color: #FF5A79 !important; transform: scale(1.04);
+            }
+            .wood-tag-item.grand-winner {
+                background: #FFF5F7 !important; border-left-color: #FF1A43 !important; color: #B31531 !important;
+                transform: scale(1.08) !important; box-shadow: 0 10px 24px rgba(255, 26, 67, 0.25) !important;
+                z-index: 10; animation: superWobble 0.5s ease infinite alternate !important;
+            }
+
+            /* ================= 右欄：告白情書拉霸主機 ================= */
+            .machine-panel {
+                width: 360px; display: flex; flex-direction: column;
+                align-items: center; justify-content: flex-end; flex-shrink: 0; position: relative;
+            }
+
+            /* 情書框架（定格時觸發強烈心跳頓挫） */
+            .shrine-frame-box {
+                width: 100%; position: relative; background: #FFFFFF;
+                border: 4px solid #4A3C3D; border-radius: 24px;
+                box-shadow: 0 10px 0px #4A3C3D, 0 16px 40px rgba(74, 60, 61, 0.12); 
+                margin-bottom: 22px; box-sizing: border-box; padding: 18px; z-index: 2;
+                background-image: linear-gradient(to bottom, #FFFBFB 0%, #FFFFFF 100%);
+            }
+            
+            /* 日系戀愛金邊蕾絲裝飾線 */
+            .shrine-roof-deco {
+                position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+                width: 75%; height: 10px; background: #FF8A9A; border-radius: 10px 10px 0 0;
+                border-bottom: 3px solid #ECC94B; border-top: 2px solid #4A3C3D;
+            }
+
+            /* ─── 👺 輕小說純情風：害羞妄想中的Q版哥布林 ─── */
+            .anime-top-cat {
+                position: absolute; top: -58px; left: 50%; transform: translateX(-50%);
+                width: 90px; height: 50px; background: #A2C379; /* 呆萌綠 */
+                border: 4px solid #4A3C3D; border-bottom: none;
+                border-radius: 45px 45px 0 0; z-index: 1; transform-origin: bottom center;
+                animation: catSmoothBreath 3s infinite ease-in-out;
+            }
+
+            /* 長長的綠色招風耳 */
+            .cat-ear-node {
+                width: 0; height: 0; border-top: 7px solid transparent; border-bottom: 7px solid transparent; position: absolute; top: 14px; z-index: 3;
+            }
+            .cat-ear-node::after { content: ''; width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; position: absolute; top: -4px; }
+            .cat-ear-node.left { border-right: 22px solid #4A3C3D; left: -22px; transform: rotate(12deg); }
+            .cat-ear-node.left::after { border-right: 16px solid #FFC0CB; left: 4px; }
+            .cat-ear-node.right { border-left: 22px solid #4A3C3D; right: -22px; transform: rotate(-12deg); }
+            .cat-ear-node.right::after { border-left: 16px solid #FFC0CB; right: 4px; }
+
+            /* 五官與害羞爆紅的腮紅 */
+            .cat-face-layer { position: absolute; width: 100%; height: 100%; top:0; left:0; z-index:5; }
+            .cat-blush { width: 12px; height: 6px; background: #FF5A79; border-radius: 50%; opacity: 0.6; position: absolute; top: 23px; animation: blushPulse 1.5s infinite alternate; }
+            .cat-blush.left { left: 10px; }
+            .cat-blush.right { right: 10px; }
+            .cat-nose { width: 4px; height: 3px; background: #4A3C3D; border-radius: 50%; position: absolute; top: 24px; left: 43px; }
+
+            /* 抱在胸口的粉紅色小告白信封 */
+            .goblin-love-letter {
+                position: absolute; bottom: 0; left: 32px; width: 26px; height: 16px;
+                background: #FFECF0; border: 3px solid #4A3C3D; border-bottom: none;
+                border-radius: 4px 4px 0 0; z-index: 6; display: flex; justify-content: center; align-items: center;
+            }
+            .goblin-love-letter::before { content: '❤️'; font-size: 8px; }
+
+            /* 預設狀態：緊張到閉眼祈禱 (往下撇的害羞線條) */
+            .cat-eyes-sleep { display: flex; gap: 26px; justify-content: center; margin-top: 20px; }
+            .sleep-curve { width: 13px; height: 3px; background: #4A3C3D; border-radius: 2px; transform: rotate(5deg); }
+            .sleep-curve.right { transform: rotate(-5deg); }
+            
+            /* 輕小說經典：粉紅愛心妄想泡泡 */
+            .love-dream-bubble {
+                position: absolute; width: 14px; height: 14px; 
+                background: #FFF0F2; border: 2.5px solid #4A3C3D; border-radius: 50%;
+                top: 10px; left: 28px; transform-origin: bottom center;
+                display: flex; justify-content: center; align-items: center;
+                animation: loveBubbleScale 2.5s infinite ease-in-out;
+            }
+            .love-dream-bubble::before { content: '💖'; font-size: 9px; }
+
+            /* 中獎驚醒：不可置信的水汪汪純情大開眼 (⊙ ⊙) ！ */
+            .cat-eyes-awake { display: none; gap: 18px; justify-content: center; margin-top: 13px; }
+            .awake-anime-eye {
+                width: 15px; height: 15px; background: #FFFFFF; border: 3.5px solid #4A3C3D; border-radius: 50%; position: relative;
+            }
+            .awake-anime-eye::after {
+                content: ''; width: 6px; height: 6px; background: #4A3C3D; border-radius: 50%; position: absolute; top: 2.5px; left: 2.5px;
+            }
+
+            /* 固定搭在窗框上的小綠手 */
+            .shrine-cat-paws {
+                position: absolute; top: -10px; left: 0; width: 100%;
+                display: flex; justify-content: space-between; padding: 0 45px; box-sizing: border-box; z-index: 7;
+            }
+            .static-paw-item {
+                width: 18px; height: 14px; background: #A2C379; border: 3px solid #4A3C3D; border-radius: 8px 8px 10px 10px;
+            }
+
+            /* ─── 💥 悸動打擊感：大獎定格心跳連動 ─── */
+            /* 煞車定格時，整台情書機台會觸發強烈的「悸動下沉頓挫反震」，重現驚喜張力 */
+            .machine-panel.hit-impact .shrine-frame-box {
+                animation: heartShockwave 0.45s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
+            }
+            /* 哥布林成功約到女神：大驚醒模式 */
+            .machine-panel.hit-impact .cat-eyes-sleep { display: none; }
+            .machine-panel.hit-impact .love-dream-bubble { display: none !important; }
+            .machine-panel.hit-impact .cat-eyes-awake { display: flex; }
+            .machine-panel.hit-impact .anime-top-cat { animation: catAwakeJump 0.4s infinite alternate ease-out; background: #B4DB7D; }
+
+
+            /* 老虎機展示窗（3D 硬體加速，外框保持安定） */
+            .slot-display-window {
+                position: relative; height: 120px; width: 100%;
+                background: #FFFDFB; border-radius: 14px; overflow: hidden; 
+                border: 2px solid #FFD4DA; box-shadow: inset 0 3px 12px rgba(255, 107, 129, 0.05);
+                box-sizing: border-box;
+            }
+            .slot-reel-track {
+                position: absolute; width: 100%; top: 0; left: 0;
+                transform: translate3d(0, 0, 0); backface-visibility: hidden; will-change: transform, top;
+                transition: top 4.8s cubic-bezier(0.05, 0.82, 0.12, 1); 
+            }
+            /* 滾動時自動附帶動漫動態速度線模糊 */
+            .machine-panel.spinning .slot-reel-track {
+                filter: blur(1.8px);
+            }
+            
+            .slot-restaurant-card {
+                height: 112px; display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 0 20px;
+            }
+            .res-name { font-size: 20px; font-weight: 900; color: #4A3C3D; margin-bottom: 5px; }
+            .res-google-rating { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #8A7677; margin-bottom: 3px; }
+            .stars-group { color: #FFAE00; }
+            .res-meta-line { font-size: 11px; color: #8A7677; max-width: 90%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+            /* 篩選控制器 */
+            .kawaii-filter {
+                background: #FFF0F2; border: 2px solid #FFD4DA; padding: 8px 16px; border-radius: 18px;
+                display: flex; gap: 12px; margin-bottom: 22px; width: 100%; box-sizing: border-box; justify-content: space-between;
+            }
+            .kawaii-filter label { font-size: 13px; font-weight: bold; color: #DE6B7B; }
+            select { background: transparent; border: none; font-size: 14px; font-weight: 700; color: #FF5A79; outline: none; cursor: pointer; }
+            
+            .status-panel { min-height: 42px; margin-bottom: 15px; text-align: center; }
+            .status-msg { font-size: 12.5px; color: #8A7677; }
+            .winner-title { font-family: 'Mochiy Pop One', sans-serif; color: #FF4D6D; font-size: 12.5px; animation: softBounce 0.6s infinite alternate; }
+
+            .kawaii-trigger-btn {
+                width: 100%; background: linear-gradient(135deg, #FF6B81 0%, #E06A7B 100%); color: #FFFFFF; border: none; padding: 16px; font-size: 16px;
+                font-family: 'Mochiy Pop One', sans-serif; border-radius: 22px; cursor: pointer; box-shadow: 0 6px 0px #9C3D49;
+                transition: all 0.1s ease; display: flex; align-items: center; justify-content: center; gap: 8px;
+            }
+            .kawaii-trigger-btn:hover:not(:disabled) { filter: brightness(1.05); }
+            .kawaii-trigger-btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 2px 0px #9C3D49; }
+            .kawaii-trigger-btn:disabled { background: #EADCDA; color: #AFA2A0; box-shadow: 0 6px 0px #C6B7B5; cursor: not-allowed; }
+
+            /* ================= 動態關鍵影格動畫庫 ================= */
+            @keyframes popInAnimeTag { 0% { opacity: 0; transform: scale(0.7) translateY(15px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+            @keyframes softBounce { 0% { transform: translateY(0); } 100% { transform: translateY(-5px); } }
+            @keyframes superWobble { 0% { transform: scale(1.06) rotate(-3deg); } 100% { transform: scale(1.06) rotate(3deg); } }
+            
+            /* 1. 待機緊張微抖呼吸 */
+            @keyframes catSmoothBreath {
+                0%, 100% { transform: translateX(-50%) scale(1) translateY(0); }
+                50% { transform: translateX(-50%) scale(1.025, 0.96) translateY(1.5px); }
+            }
+            /* 2. 腮紅緊張爆紅 */
+            @keyframes blushPulse { 0% { opacity: 0.4; } 100% { opacity: 0.8; } }
+            /* 3. 妄想泡泡起伏 */
+            @keyframes loveBubbleScale {
+                0%, 100% { transform: scale(0.4); opacity: 0; }
+                40% { transform: scale(1.1); opacity: 1; }
+                70% { transform: scale(1.3); opacity: 0.9; }
+                80% { transform: scale(1.4); opacity: 0; }
+            }
+            /* 4. 成功約到！純情狂喜大跳躍 */
+            @keyframes catAwakeJump {
+                0% { transform: translateX(-50%) translateY(0) scale(1); }
+                100% { transform: translateX(-50%) translateY(-6px) scale(0.95, 1.05); }
+            }
+            
+            /* 5. 核心打擊感：純情心跳「重擊頓挫反震」 */
+            @keyframes heartShockwave {
+                0% { transform: translateY(0); }
+                10% { transform: translateY(14px) scale(1.04, 0.92); } /* 心臟重擊下沉點 */
+                30% { transform: translateY(-5px) scale(0.98, 1.03); } /* 回彈 */
+                55% { transform: translateY(1.5px); }
+                100% { transform: translateY(0); }
+            }
+
+            /* 微風愛心與櫻花雨下落曲線 */
+            @keyframes driftLoveFall {
+                0% { transform: translateY(-20px) translateX(0) rotate(0deg) scale(0.6); opacity: 0; }
+                15% { opacity: 1; }
+                85% { opacity: 1; }
+                100% { transform: translateY(105vh) translateX(70px) rotate(360deg) scale(1.1); opacity: 0; }
+            }
+        `;
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = cssStyles;
+        document.head.appendChild(styleSheet);
+
+        // 3. 動態建構雙欄 HTML 結構
+        document.getElementById("app-root").innerHTML = `
+            <div id="anime-fx-layer" class="anime-fx-overlay"></div>
+
+            <div class="app-workspace">
+                <div class="list-panel">
+                    <div class="list-header">
+                        <i class="fa-solid fa-heart-envelope"></i> 作戰密報 · 女神大人的美食清單
+                    </div>
+                    <div id="menu-board-wall" class="menu-board-grid"></div>
+                </div>
+
+                <div id="machine-wrapper" class="machine-panel">
+                    
+                    <div class="shrine-frame-box">
+                        <div id="shrine-cat" class="anime-top-cat">
+                            <div class="cat-ear-node left"></div>
+                            <div class="cat-ear-node right"></div>
+                            <div class="goblin-love-letter"></div>
+                            <div class="cat-face-layer">
+                                <div class="cat-blush left"></div>
+                                <div class="cat-blush right"></div>
+                                <div class="cat-nose"></div>
+                                <div class="cat-eyes-sleep">
+                                    <div class="sleep-curve left"></div>
+                                    <div class="sleep-curve right"></div>
+                                </div>
+                                <div class="love-dream-bubble"></div>
+                                <div class="cat-eyes-awake">
+                                    <div class="awake-anime-eye"></div>
+                                    <div class="awake-anime-eye"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="shrine-roof-deco"></div>
+
+                        <div class="shrine-cat-paws">
+                            <div class="static-paw-item"></div>
+                            <div class="static-paw-item"></div>
+                        </div>
+                        
+                        <div class="slot-display-window">
+                            <div id="reel" class="slot-reel-track">
+                                <div class="slot-restaurant-card">
+                                    <div class="res-name" style="color:#BCB7AE;">準備情書...🐾</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="kawaii-filter">
+                        <label><i class="fa-solid fa-heart"></i> 女神移動範圍</label>
+                        <select id="range">
+                            <option value="5">方圓 05 公里</option>
+                            <option value="10">方圓 10 公里</option>
+                            <option value="20">方圓 20 公里</option>
+                        </select>
+                    </div>
+
+                    <div class="status-panel">
+                        <div id="status" class="status-msg">
+                            <i class="fa-solid fa-envelope-open-text fa-spin" style="color:#FF5A79;"></i> 哥布林正在重新整理情書，精心鎖定約會座標...
+                        </div>
+                    </div>
+
+                    <button id="spin-btn" class="kawaii-trigger-btn" onclick="pullLever()" disabled>
+                        <i class="fa-solid fa-heart-circle-plus"></i> 發動！約餐確認傳送術
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // 4. 連鎖店家資料池
+        const googleRestaurantsPool = [
+            { name: "鼎泰豐 (信義店)", address: "台北市大安區信義路二段194號", baseRating: 4.5, reviewsMax: 18000 },
+            { name: "壽司郎 (台北館前店)", address: "台北市中正區館前路8號2樓", baseRating: 4.3, reviewsMax: 9500 },
+            { name: "星巴克 (重慶門市)", address: "台北市中正區重慶南路一段104號", baseRating: 4.1, reviewsMax: 3200 },
+            { name: "馬辣頂級麻辣鴛鴦火鍋", address: "台北市萬華區西寧南路157號2樓", baseRating: 4.4, reviewsMax: 12000 },
+            { name: "麥當勞 (林森二店)", address: "台北市中山區林森北路247號", baseRating: 3.9, reviewsMax: 5400 },
+            { name: "一蘭拉麵 (台灣台北本店)", address: "台北市信義區松仁路97號B1", baseRating: 4.2, reviewsMax: 8700 },
+            { name: "大戶屋 (民權東路店)", address: "台北市中山區民權東路一段76號", baseRating: 4.1, reviewsMax: 2100 },
+            { name: "添好運 (HOYII北車站店)", address: "台北市中正區忠孝西路一段36號", baseRating: 4.0, reviewsMax: 6200 },
+            { name: "屋馬燒肉 (文心店)", address: "台中市南屯區文心路一段436號", baseRating: 4.6, reviewsMax: 22000 }, 
+            { name: "金色三麥 (美麗華店)", address: "台北市中山區敬業三路20號5樓", baseRating: 4.3, reviewsMax: 4800 }
+        ];
+        
+        let userCoords = null; let filteredStores = []; let isRolling = false;
+        let flashInterval = null; let sakuraInterval = null;
+        const cardHeight = 112; 
+
+        const reel = document.getElementById("reel"); const spinBtn = document.getElementById("spin-btn");
+        const rangeSelect = document.getElementById("range"); const statusDiv = document.getElementById("status");
+        const menuBoardWall = document.getElementById("menu-board-wall");
+        const machineWrapper = document.getElementById("machine-wrapper");
+        const fxLayer = document.getElementById("anime-fx-layer");
+
+        getUserLocation();
+        rangeSelect.addEventListener('change', filterStores);
+
+        function getUserLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => { userCoords = { lat: position.coords.latitude, lng: position.coords.longitude }; filterStores(); },
+                    (error) => { userCoords = { lat: 25.042, lng: 121.532 }; filterStores(); }
+                );
+            } else { statusDiv.innerHTML = `<span>作戰定位羅盤啟動失敗</span>`; }
+        }
+
+        function filterStores() {
+            if(!userCoords) return;
+            const selectedRange = parseFloat(rangeSelect.value);
+            
+            const currentMappedStores = googleRestaurantsPool.map(store => {
+                let offsetLat = (Math.random() - 0.5) * 0.12; let offsetLng = (Math.random() - 0.5) * 0.12;
+                if (store.name.includes("屋馬")) { offsetLat = 1.2; offsetLng = -0.8; }
+                const distance = getDistance(userCoords.lat, userCoords.lng, userCoords.lat + offsetLat, userCoords.lng + offsetLng);
+                const rating = (store.baseRating + Math.random() * (5.0 - store.baseRating)).toFixed(1);
+                const totalReviews = Math.floor(1000 + Math.random() * (store.reviewsMax - 1000));
+                return { name: store.name, address: store.address, distance, rating, totalReviews };
+            });
+
+            filteredStores = currentMappedStores.filter(store => store.distance <= selectedRange);
+            reel.style.transition = 'none'; reel.style.top = '0px';
+            machineWrapper.className = 'machine-panel'; 
+            stopSakuraShower(); 
+
+            if (filteredStores.length === 0) {
+                statusDiv.innerHTML = `<span>女神大人今天宅在家，不願意出門喵～</span>`;
+                spinBtn.disabled = true;
+                reel.innerHTML = `<div class="slot-restaurant-card"><div class="res-name" style="color:#BCB7AE;">約會被拒絕了</div></div>`;
+                menuBoardWall.innerHTML = '<div style="grid-column: span 2; text-align:center; color:#AFA2A0; margin-top:30px; font-size:13px;">清單中查無約會基地</div>';
+            } else {
+                statusDiv.innerHTML = `<span>雷達就緒！發現 ${filteredStores.length} 間有機會討好女神的聖地！</span>`;
+                spinBtn.disabled = false;
+                buildSlotItems(filteredStores, false);
+                renderLeftWoodWall(filteredStores);
+            }
+        }
+
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; const dLat = (lat2 - lat1) * Math.PI / 180; const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        function renderLeftWoodWall(stores) {
+            let wallHtml = '';
+            stores.forEach((store, index) => {
+                const delay = (index * 0.04).toFixed(2);
+                wallHtml += `<div id="wood-tag-${index}" class="wood-tag-item" style="animation-delay: ${delay}s">${store.name.split(" ")[0]}</div>`;
+            });
+            menuBoardWall.innerHTML = wallHtml;
+        }
+
+        function buildSlotItems(stores, isSpinningMode) {
+            let htmlContent = '';
+            if (!isSpinningMode) { htmlContent = createCardHTML(stores[0]); } 
+            else {
+                for (let r = 0; r < 5; r++) {
+                    stores.forEach(store => { htmlContent += createCardHTML(store); });
+                }
+            }
+            reel.innerHTML = htmlContent;
+        }
+
+        function createCardHTML(store) {
+            let starsHTML = ''; const floorStars = Math.floor(store.rating);
+            for(let i=0; i<5; i++) { starsHTML += (i < floorStars) ? '<i class="fa-solid fa-star"></i>' : '<i class="fa-regular fa-star"></i>'; }
+            const mapUrl = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(store.name + " " + store.address);
+
+            return `
+                <a href="${mapUrl}" target="_blank" style="text-decoration: none; display: block; width: 100%; height: 100%;">
+                    <div class="slot-restaurant-card">
+                        <div class="res-name">${store.name}</div>
+                        <div class="res-google-rating">
+                            <span style="font-weight:700; color:#FF5A79;">${store.rating}</span>
+                            <span class="stars-group">${starsHTML}</span>
+                        </div>
+                        <div class="res-meta-line" title="${store.address}">
+                            <i class="fa-solid fa-map-location-dot" style="color:#FF6B81;"></i> ${store.address}
+                        </div>
+                        <div class="res-meta-line" style="margin-top:5px; font-weight:bold; color:#E06A7B;">
+                            <span>${store.distance.toFixed(1)} KM</span> · 按下按鈕，出發首場約會！ 🌸
+                        </div>
+                    </div>
+                </a>`;
+        }
+
+        // 輕小說純愛風：漫天粉紅愛心與閃爍櫻花雨生成器
+        function startSakuraShower() {
+            stopSakuraShower(); 
+            const textures = ['💖', '🌸', '✨', '💕'];
+            sakuraInterval = setInterval(() => {
+                const item = document.createElement('div');
+                item.style.position = 'absolute'; item.style.pointerEvents = 'none';
+                item.innerText = textures[Math.floor(Math.random() * textures.length)];
+                
+                const size = Math.random() * 10 + 12;
+                item.style.fontSize = size + 'px';
+                item.style.left = Math.random() * 100 + 'vw'; item.style.top = '-20px';
+                
+                if(item.innerText === '✨') item.style.color = '#ECC94B';
+                
+                const duration = Math.random() * 2.2 + 1.8; 
+                item.style.animation = `driftLoveFall ${duration}s linear forwards`;
+                fxLayer.appendChild(item);
+                setTimeout(() => item.remove(), duration * 1000);
+            }, 55); 
+        }
+
+        function stopSakuraShower() { clearInterval(sakuraInterval); fxLayer.innerHTML = ''; }
+
+        // ================= 核心連動拉霸控制 =================
+        function pullLever() {
+            if (isRolling || filteredStores.length === 0) return;
+            isRolling = true; spinBtn.disabled = true; rangeSelect.disabled = true;
+            stopSakuraShower();
+
+            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+            playClickSound(); // 水晶啟動音
+
+            // 內軌高速旋轉，哥布林在屋頂上滿臉通紅地抱緊情書、閉眼祈禱妄想中
+            machineWrapper.className = 'machine-panel spinning';
+            statusDiv.innerHTML = `<span>💖 餐廳挑選中！哥布林正在心跳加速地祈禱告白成功...</span>`;
+
+            document.querySelectorAll('.wood-tag-item').forEach(tag => tag.classList.remove('active-flash', 'grand-winner'));
+
+            const winnerIndex = Math.floor(Math.random() * filteredStores.length);
+            buildSlotItems(filteredStores, true);
+            reel.offsetHeight; 
+
+            // 左側情報筆記閃爍
+            let lastFlashedIndex = -1;
+            flashInterval = setInterval(() => {
+                if (lastFlashedIndex !== -1) {
+                    const prevTag = document.getElementById(`wood-tag-${lastFlashedIndex}`);
+                    if (prevTag) prevTag.classList.remove('active-flash');
+                }
+                const randomFlashIndex = Math.floor(Math.random() * filteredStores.length);
+                const currentTag = document.getElementById(`wood-tag-${randomFlashIndex}`);
+                if (currentTag) currentTag.classList.add('active-flash');
+                lastFlashedIndex = randomFlashIndex;
+            }, 80);
+
+            // 右側拉霸慢煞車 (60fps 硬體加速)
+            const targetPosition = (filteredStores.length * 3 + winnerIndex) * cardHeight;
+            reel.style.transition = 'top 4.8s cubic-bezier(0.05, 0.82, 0.12, 1)';
+            reel.style.top = '-' + targetPosition + 'px';
+
+            // 煞車定格
+            setTimeout(() => {
+                clearInterval(flashInterval);
+                isRolling = false; spinBtn.disabled = false; rangeSelect.disabled = false;
+                
+                // 💥 狀態切換：引爆強烈心跳下沉頓挫反震！妄想愛心泡泡粉碎，哥布林雙眼「瞬間驚醒睜大」，狂喜大跳！
+                machineWrapper.className = 'machine-panel hit-impact';
+                
+                playWinSound(); // 治癒水晶風鈴音
+                startSakuraShower(); // 漫天粉紅愛心雨爆發現場
+
+                document.querySelectorAll('.wood-tag-item').forEach(tag => tag.classList.remove('active-flash'));
+                const winningTag = document.getElementById(`wood-tag-${winnerIndex}`);
+                if (winningTag) winningTag.classList.add('grand-winner');
+
+                statusDiv.innerHTML = `
+                    <div class="winner-title">
+                        <i class="fa-solid fa-heart-pulse"></i> 成功約到女神了！點擊卡片出發甜蜜約會吧喵！
+                    </div>
+                `;
+                
+                reel.style.transition = 'none'; reel.style.top = '0px';
+                buildSlotItems([filteredStores[winnerIndex]], false);
+            }, 4800); 
+        }
+    </script>
+</body>
+</html>
